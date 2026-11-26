@@ -20,11 +20,14 @@ import {
   type MdMode,
 } from "./MarkdownToolbar";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { findHits, scrollTextareaTo } from "../searchHit";
 import { folderTree, sortTools, useSort, useToolOrder, type SideSort } from "../sort";
 
 interface Props {
   prompt: Prompt;
   folders: Folder[];
+  /** Ouvert depuis un résultat de recherche : aller à la première occurrence de `query` dans le contenu. */
+  jump?: { query: string; n: number } | null;
   onSave: (id: string, patch: PromptChanges) => Promise<void>;
   onToggleFavorite: (p: Prompt) => void;
   onTogglePin: (p: Prompt) => void;
@@ -148,6 +151,33 @@ export const Editor = forwardRef<HTMLInputElement, Props>(function Editor(props,
   useEffect(() => {
     api.listTags().then(setLibrary).catch(() => setLibrary([]));
   }, [promptId]);
+
+  // Résultat de recherche cliqué : en Édition, l'occurrence est sélectionnée et amenée à l'écran ;
+  // l'aperçu (et l'aperçu affiché plus tard) surligne les occurrences et centre la première.
+  const [highlight, setHighlight] = useState<{ query: string; n: number } | null>(null);
+  const jumped = useRef(0);
+  const { jump } = props;
+  useEffect(() => {
+    if (!jump) {
+      setHighlight(null); // recherche effacée ou modifiée : plus de surlignage
+      return;
+    }
+    if (jumped.current === jump.n) return;
+    jumped.current = jump.n;
+    const hit = findHits(content, jump.query)[0];
+    if (!hit) {
+      setHighlight(null); // trouvé seulement dans le titre ou les tags
+      return;
+    }
+    setHighlight(jump);
+    const ta = textareaRef.current;
+    if (mode === "edit" && !readOnly && ta) {
+      ta.focus({ preventScroll: true });
+      ta.setSelectionRange(hit.start, hit.end);
+      scrollTextareaTo(ta, hit.start);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump]);
 
   // ⇧⌘P : bascule Édition / Aperçu (une commande à la corbeille reste en lecture).
   useEffect(() => {
@@ -335,7 +365,11 @@ export const Editor = forwardRef<HTMLInputElement, Props>(function Editor(props,
           }}
         />
       ) : (
-        <MarkdownPreview content={content} onCopyCode={(code) => void copy(code, t("ed.copiedBlock"))} />
+        <MarkdownPreview
+          content={content}
+          highlight={highlight}
+          onCopyCode={(code) => void copy(code, t("ed.copiedBlock"))}
+        />
       )}
 
       {variables.length > 0 && (

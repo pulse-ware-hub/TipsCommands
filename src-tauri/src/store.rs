@@ -370,9 +370,9 @@ fn check_tool(tool: &str) -> Result<()> {
 
 /// Requête FTS5 sûre : chaque mot devient un préfixe entre guillemets (`"mot"*`).
 fn fts_query(query: &str) -> Option<String> {
+    // Découpe comme l'index (unicode61) : « pare-feu » → « pare » + « feu », et non « parefeu ».
     let terms: Vec<String> = query
-        .split_whitespace()
-        .map(|w| w.chars().filter(|c| c.is_alphanumeric()).collect::<String>())
+        .split(|c: char| !c.is_alphanumeric())
         .filter(|w| !w.is_empty())
         .map(|w| format!("\"{w}\"*"))
         .collect();
@@ -1234,6 +1234,18 @@ mod tests {
             .unwrap()
             .map(|r| r.unwrap())
             .collect()
+    }
+
+    #[test]
+    fn search_splits_words_like_the_index() {
+        assert_eq!(fts_query("pare-feu").as_deref(), Some("\"pare\"* \"feu\"*"));
+        assert_eq!(fts_query("  docker   ps ").as_deref(), Some("\"docker\"* \"ps\"*"));
+        assert_eq!(fts_query(" -- ").as_deref(), None);
+        let conn = db();
+        let p = create_prompt(&conn, None, None).unwrap();
+        set(&conn, &p.id, "Réseau", "Vérifier le pare-feu : sudo ufw status");
+        let found = list_prompts(&conn, &filter("all", None, Some("pare-feu"))).unwrap();
+        assert_eq!(found.len(), 1);
     }
 
     #[test]

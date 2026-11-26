@@ -59,6 +59,8 @@ export default function App() {
   // Ordre d'affichage (alphabétique par défaut, au choix de l'utilisateur) ; « Récents » reste chronologique.
   const shown = useMemo(() => sortPrompts(items, listSort, selection.kind), [items, listSort, selection.kind]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** Clic sur un résultat de recherche : l'éditeur va à la première occurrence (n : déclenche une seule fois). */
+  const [jump, setJump] = useState<{ id: string; query: string; n: number } | null>(null);
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [revision, setRevision] = useState(0); // force le rechargement de l'éditeur
   const [toast, setToast] = useState<string | null>(null);
@@ -580,8 +582,14 @@ export default function App() {
         selectedId={selectedId}
         folders={folders}
         query={query}
-        onQuery={setQuery}
-        onSelect={setSelectedId}
+        onQuery={(q) => {
+          setQuery(q);
+          setJump(null);
+        }}
+        onSelect={(id) => {
+          setSelectedId(id);
+          setJump(query.trim() ? { id, query, n: Date.now() } : null);
+        }}
         onNew={newPrompt}
         onDuplicate={duplicate}
         onToggleFavorite={toggleFavorite}
@@ -600,6 +608,7 @@ export default function App() {
           ref={titleRef}
           prompt={prompt}
           folders={folders}
+          jump={jump && jump.id === prompt.id ? jump : null}
           onSave={savePrompt}
           onToggleFavorite={toggleFavorite}
           onTogglePin={togglePin}

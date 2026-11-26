@@ -226,6 +226,8 @@ textarea, input { user-select: text; -webkit-user-select: text; }
 .md-preview table { border-collapse: collapse; }
 .md-preview th, .md-preview td { border: 1px solid var(--line); padding: 4px 10px; text-align: left; }
 .md-preview img { max-width: 100%; }
+.md-preview mark.search-hit { background: var(--accent-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
+.md-preview mark.search-hit.current { background: var(--accent); color: #1d1d1f; }
 
 .banner {
   display: flex; align-items: center; gap: 8px; padding: 8px 22px;

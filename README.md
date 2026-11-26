@@ -34,7 +34,9 @@ A lightweight native app (Tauri 2: Rust core + React interface) that stores your
   Go templates used by Docker or kubectl (`{{.Names}}`, `{{json .}}`) are left untouched.
 - **Tags** sorted alphabetically, with autocompletion (docker, git, ssh, rsync, kubectl, brew…).
 - Favorites, **pinning** (pinned commands stay at the top of the list), trash (30 days), version history.
-- Instant search (name, content, tags), drag and drop for commands and folders.
+- Instant search (name, content, tags; accents ignored, "pare-feu" finds both words), drag and drop for commands
+  and folders. **Clicking a result goes to the first occurrence**: selected in Edit mode, highlighted (all
+  occurrences) and centred in Preview mode.
 - **Global palette** `⌥⌘P`: search a command and paste it straight into the Terminal (or any application).
 - **AI assistance** (Claude or Gemini): improve, fix, simplify, comment, split over several lines,
   make portable between macOS and Linux, make safer.

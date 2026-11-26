@@ -1,18 +1,39 @@
 import { useEffect, useMemo, useRef } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { renderMarkdown } from "../markdown";
+import { markHits } from "../searchHit";
 import { t } from "../i18n";
 
 interface Props {
   content: string;
+  /** Recherche à surligner ; la première occurrence est centrée une fois par `n`. */
+  highlight?: { query: string; n: number } | null;
   /** Copie d'un bloc de code (bouton « Copier » affiché sur chaque bloc). */
   onCopyCode: (code: string) => void;
 }
 
 /** Aperçu Markdown : liens ouverts dans le navigateur, bouton de copie sur chaque bloc de code. */
-export function MarkdownPreview({ content, onCopyCode }: Props) {
+export function MarkdownPreview({ content, highlight, onCopyCode }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const html = useMemo(() => renderMarkdown(content), [content]);
+  const scrolled = useRef(0);
+
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    // Retire un surlignage précédent avant d'en poser un nouveau.
+    root.querySelectorAll("mark.search-hit").forEach((m) => m.replaceWith(m.textContent ?? ""));
+    root.normalize();
+    if (!highlight) return;
+    const first = markHits(root, highlight.query);
+    first?.classList.add("current");
+    if (first && scrolled.current !== highlight.n) {
+      scrolled.current = highlight.n;
+      // Défilement de l'aperçu seul (scrollIntoView décalerait aussi les volets parents).
+      const top = first.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
+      root.scrollTop = Math.max(0, top - root.clientHeight / 2);
+    }
+  }, [html, highlight]);
 
   useEffect(() => {
     ref.current?.querySelectorAll("pre").forEach((pre) => {

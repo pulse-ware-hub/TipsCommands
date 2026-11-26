@@ -34,7 +34,9 @@ Application native légère (Tauri 2 : cœur Rust + interface React), données s
   Les gabarits Go de Docker ou kubectl (`{{.Names}}`, `{{json .}}`) sont laissés tels quels.
 - **Tags** triés par ordre alphabétique, avec complétion (docker, git, ssh, rsync, kubectl, brew…).
 - Favoris, **épinglage** (commandes épinglées en tête de liste), corbeille (30 jours), historique des versions.
-- Recherche instantanée (nom, contenu, tags), glisser-déposer des commandes et des dossiers.
+- Recherche instantanée (nom, contenu, tags ; accents ignorés, « pare-feu » trouve les deux mots), glisser-déposer
+  des commandes et des dossiers. **Un clic sur un résultat va à la première occurrence** : sélectionnée en mode
+  Édition, surlignée (toutes les occurrences) et centrée en mode Aperçu.
 - **Palette globale** `⌥⌘P` : cherchez une commande et collez-la directement dans le Terminal (ou toute autre application).
 - **Assistance IA** (Claude ou Gemini) : améliorer, corriger, simplifier, commenter, passer en multi-lignes,
   rendre portable macOS / Linux, sécuriser.
